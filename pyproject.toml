@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "seletrans"
+version = "0.1.0"
+description = ""
+authors = ["SErAphLi <seraphlivery@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+chromedriver-autoinstaller = "^0.3.1"
+selenium = "^4.3.0"
+pytest = "^7.1.2"
+
+[tool.poetry.dev-dependencies]
+black = {version = "^22.6.0", allow-prereleases = true}
+pyinstrument = "^4.2.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--capture=no"
