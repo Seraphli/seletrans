@@ -19,31 +19,31 @@ class Baidu(Base):
             elem.click()
             self.skip_guide = True
 
-    def set_source_lang(self, source_lang):
+    def set_source_lang(self, source):
         elem = self.driver.find_element(
             By.XPATH, "//a[@class='language-btn select-from-language']"
         )
         elem.click()
-        if source_lang == "auto":
+        if source == "auto":
             elem = self.driver.find_element(
                 By.XPATH, "//li[contains(@class,'lang-item')]"
             )
             elem.click()
         else:
             elem = self.driver.find_element(By.XPATH, "//input[@class='search-input']")
-            elem.send_keys(source_lang)
+            elem.send_keys(source)
             elem = self.driver.find_element(
                 By.XPATH, "//div[@class='search-result-item']"
             )
             elem.click()
 
-    def set_target_lang(self, target_lang):
+    def set_target_lang(self, target):
         elem = self.driver.find_element(
             By.XPATH, "//a[@class='language-btn select-to-language']"
         )
         elem.click()
         elem = self.driver.find_element(By.XPATH, "//input[@class='search-input']")
-        elem.send_keys(target_lang)
+        elem.send_keys(target)
         elem = self.driver.find_element(By.XPATH, "//div[@class='search-result-item']")
         elem.click()
 
