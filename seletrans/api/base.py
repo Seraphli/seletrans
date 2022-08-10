@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Callable, Dict, Type, Iterable
+    from typing import Callable, Dict, Type, Iterable, List
 
 import chromedriver_autoinstaller
 from selenium.webdriver.chrome.options import Options
@@ -22,14 +22,14 @@ from seletrans.util import get_path
 
 @dataclass
 class Handlers:
-    process: Callable[[str], bool] = None
-    debug: Callable[[str, str]] = None
+    process: List[Callable[[str], bool]] | None = None
+    debug: Callable[[str, str]] | None = None
 
 
 class Base:
     NAME = "base"
     URL = ""
-    TIMEOUT_MAX = 10
+    TIMEOUT_MAX = 60
     url_map: Dict[Iterable[str], Type(Handlers)]
 
     def __init__(self, debug=False) -> None:
@@ -93,18 +93,24 @@ class Base:
             logs = self._get_net_logs()
         return True
 
-    def _handle_pattern(self, log_json, handlers):
+    def _handle_pattern(self, log_json, handler):
         requestId = log_json["params"]["requestId"]
         try:
             response_body = self.driver.execute_cdp_cmd(
                 "Network.getResponseBody", {"requestId": requestId}
             )
             body = response_body["body"]
-            flag = handlers.process(body) if handlers.process else True
+            if handler.process:
+                if callable(handler.process):
+                    flag = handler.process(body)
+                else:
+                    flag = any([p(body) for p in handler.process])
+            else:
+                flag = True
             if flag and self.debug:
                 fn = f"{self.__class__.__name__}_{requestId}"
-                if handlers.debug:
-                    handlers.debug(fn, body)
+                if handler.debug:
+                    handler.debug(fn, body)
                 else:
                     self._debug_save_raw(fn, body)
         except WebDriverException:
@@ -116,9 +122,9 @@ class Base:
 
     def _handle_patterns(self, log_json):
         url = log_json["params"]["response"]["url"]
-        for pattern, handlers in self.url_map.items():
+        for pattern, handler in self.url_map.items():
             if self.check_url(pattern, url):
-                self._handle_pattern(log_json, handlers)
+                self._handle_pattern(log_json, handler)
 
     def _debug_save_json(self, fn, body):
         resp = json.loads(body)
@@ -140,6 +146,7 @@ class Base:
         return logs
 
     def query(self, text, source="auto", target="zh"):
+        self.text = text
         self.driver.get(self.URL)
         self.preprocess()
         self.set_source_lang(source)
@@ -147,8 +154,8 @@ class Base:
         self._get_net_logs()
         self._clear_net_logs()
         elem = self.get_textarea()
-        elem.send_keys(text)
-        self.wait_for_response(text)
+        elem.send_keys(self.text)
+        self.wait_for_response(self.text)
         self._get_net_logs()
         self.result = ""
         for log in self.net_logs:

@@ -59,16 +59,22 @@ class DeepL(Base):
         ):
             return False
         translations = resp["result"]["translations"][0]["beams"]
-        self.result = "\n".join([t["sentences"][0]["text"] for t in translations])
+        self.result = [t["sentences"][0]["text"] for t in translations]
         return True
 
     def get_dict_result(self, body):
         soup = BeautifulSoup(body, features="html.parser")
-        wchar = soup.select("a[class*='dictLink']")
-        if len(wchar) == 0:
+        wmeans = soup.select("a[class*='dictLink']")
+        if len(wmeans) == 0:
             self.dict_result = ""
             return False
-        wtype = soup.select("span[class*='type']")
-        words = list(zip([i.text for i in wtype], [i.text for i in wchar]))
-        self.dict_result = "\n".join([" ".join(w) for w in words])
+        wtypes = soup.select("span[class*='type']")
+        words = zip([i.text for i in wmeans], [i.text for i in wtypes])
+        dict_result = []
+        for wmean, wtypes in words:
+            if self.text in wmean:
+                dict_result.append({"type": wtypes, "means": []})
+                continue
+            dict_result[-1]["means"].append(wmean)
+        self.dict_result = dict_result
         return True

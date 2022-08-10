@@ -7,7 +7,9 @@ class Baidu(Base):
     def __init__(self, debug=False):
         super().__init__(debug)
         self.url_map = {
-            ("v2transapi",): Handlers(self.get_result, self._debug_save_json),
+            ("v2transapi",): Handlers(
+                [self.get_simple_result, self.get_dict_result], self._debug_save_json
+            ),
         }
         self.skip_guide = False
 
@@ -47,7 +49,30 @@ class Baidu(Base):
         elem = self.driver.find_element(By.XPATH, "//div[@class='search-result-item']")
         elem.click()
 
-    def get_result(self, body):
+    def get_simple_result(self, body):
         resp = json.loads(body)
-        self.result = resp["trans_result"]["data"][0]["dst"]
+        self.result = [resp["trans_result"]["data"][0]["dst"]]
+        return True
+
+    def get_dict_result(self, body):
+        resp = json.loads(body)
+        if "dict_result" not in resp:
+            self.dict_result = ""
+            return False
+        dict_result = []
+        parts = resp["dict_result"]["simple_means"]["symbols"][0]["parts"]
+        for part in parts:
+            if "part" in part:
+                wmeans = part["means"]
+                wtype = part["part"]
+                dict_result.append({"type": wtype, "means": wmeans})
+            else:
+                means = part["means"]
+                for mean in means:
+                    if "means" not in mean:
+                        continue
+                    wmeans = mean["means"]
+                    wtype = mean["part"]
+                    dict_result.append({"type": wtype, "means": wmeans})
+        self.dict_result = dict_result
         return True
