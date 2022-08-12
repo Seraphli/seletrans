@@ -13,9 +13,9 @@ class DeepL(Base):
     def __init__(self, debug=False):
         super().__init__(debug)
         self.url_map = {
-            ("jsonrpc",): Handlers(self.get_simple_result, self._debug_save_json),
+            ("jsonrpc",): Handlers(self._get_simple_result, self._debug_save_json),
             ("dict.deepl.com",): Handlers(
-                self.get_dict_result, lambda x, y: self._debug_save_raw(x, y, "html")
+                self._get_dict_result, lambda x, y: self._debug_save_raw(x, y, "html")
             ),
         }
 
@@ -49,10 +49,7 @@ class DeepL(Base):
         )
         elem.click()
 
-    def wait_for_response(self, text):
-        super().wait_for_response(text)
-
-    def get_simple_result(self, body):
+    def _get_simple_result(self, body):
         resp = json.loads(body)
         if not resp["result"] or (
             resp["result"] and "translations" not in resp["result"]
@@ -62,7 +59,7 @@ class DeepL(Base):
         self.result = [t["sentences"][0]["text"] for t in translations]
         return True
 
-    def get_dict_result(self, body):
+    def _get_dict_result(self, body):
         soup = BeautifulSoup(body, features="html.parser")
         wmeans = soup.select("a[class*='dictLink']")
         if len(wmeans) == 0:
@@ -78,3 +75,34 @@ class DeepL(Base):
             dict_result[-1]["means"].append(wmean)
         self.dict_result = dict_result
         return True
+
+    def play_sound(self, check_interval=0.1):
+        elem = self.driver.find_element(
+            By.XPATH, f"//button[@dl-test='translator-speaker-source']"
+        )
+        class_attr = elem.get_attribute("class")
+        elem.click()
+        while True:
+            _attr = elem.get_attribute("class")
+            if _attr == class_attr:
+                break
+            time.sleep(check_interval)
+        time.sleep(check_interval)
+
+    def wait_for_response(self, text):
+        super().wait_for_response(text)
+        while True:
+            self._get_net_logs()
+            flag = False
+            for log in self.net_logs:
+                log_json = json.loads(log["message"])["message"]
+                if log_json["method"] != "Network.responseReceived":
+                    continue
+                url = log_json["params"]["response"]["url"]
+                if self.check_url(("dict.deepl.com", ), url):
+                    flag = True
+                    print("flag dict")
+                    break
+            if flag:
+                break
+            time.sleep(0.1)

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Callable, Dict, Type, Iterable, List
+    from typing import Callable, Dict, Type, Iterable, List, Tuple
 
 import chromedriver_autoinstaller
 from selenium.webdriver.chrome.options import Options
@@ -10,10 +10,15 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import codecs
 import json
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import (
+    WebDriverException,
+    ElementClickInterceptedException,
+    TimeoutException,
+)
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 import urllib.parse
 from dataclasses import dataclass
 import time
@@ -46,7 +51,7 @@ class Base:
         self.url_map = {}
         self.net_logs = []
 
-    def check_url(self, parts, url):
+    def check_url(self, parts: Tuple[str], url: str):
         for part in parts:
             if part in url:
                 return True
@@ -70,24 +75,40 @@ class Base:
     def set_target_lang(self, target_lang):
         pass
 
-    def get_textarea(self):
-        elem = self.driver.find_element(By.CSS_SELECTOR, "textarea")
+    def wait_and_find_elem(self, by, value):
+        WebDriverWait(self.driver, self.TIMEOUT_MAX).until(
+            EC.visibility_of_element_located((by, value))
+        )
+        elem = self.driver.find_element(by, value)
         return elem
+
+    def get_textarea(self):
+        return self.wait_and_find_elem(By.CSS_SELECTOR, "textarea")
 
     def wait_for_response(self, text):
         self._wait_for_url_change(text)
         self._wait_for_network_idle()
+
+    def try_click(self, elem):
+        try:
+            elem.click()
+            # WebDriverWait(self.driver, 0.01).until(EC.element_to_be_clickable(elem))
+            return True
+        except ElementClickInterceptedException:
+            return False
+        except TimeoutException:
+            return False
 
     def _wait_for_url_change(self, text):
         WebDriverWait(self.driver, self.TIMEOUT_MAX).until(
             EC.url_contains(urllib.parse.quote(text))
         )
 
-    def _wait_for_network_idle(self, check_time=0.2):
+    def _wait_for_network_idle(self, check_interval=0.1):
         st = time.time()
         logs = self._get_net_logs()
         while len(logs) != 0:
-            time.sleep(check_time)
+            time.sleep(check_interval)
             if time.time() - st > self.TIMEOUT_MAX:
                 return False
             logs = self._get_net_logs()
@@ -164,3 +185,6 @@ class Base:
                 continue
             self._handle_patterns(log_json)
         return self
+
+    def play_sound(self, check_interval=0.1):
+        pass
