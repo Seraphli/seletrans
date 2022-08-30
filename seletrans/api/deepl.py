@@ -1,10 +1,66 @@
-import codecs
 from .base import *
-import time
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
+
+SOURCE_LANG = [
+    "auto",
+    "et",
+    "bg",
+    "pl",
+    "da",
+    "de",
+    "ru",
+    "fr",
+    "fi",
+    "nl",
+    "cs",
+    "lv",
+    "lt",
+    "ro",
+    "pt",
+    "ja",
+    "sv",
+    "sk",
+    "sl",
+    "tr",
+    "es",
+    "el",
+    "hu",
+    "it",
+    "id",
+    "en",
+    "zh",
+]
+
+TARGET_LANG = [
+    "et",
+    "bg",
+    "pl",
+    "da",
+    "de",
+    "ru",
+    "fr",
+    "fi",
+    "nl",
+    "cs",
+    "lv",
+    "lt",
+    "ro",
+    "pt-PT",
+    "pt-BR",
+    "ja",
+    "sv",
+    "sk",
+    "sl",
+    "tr",
+    "es",
+    "el",
+    "hu",
+    "it",
+    "id",
+    "en-US",
+    "en-GB",
+    "zh",
+]
 
 
 class DeepL(Base):
@@ -18,6 +74,12 @@ class DeepL(Base):
                 self._get_dict_result, lambda x, y: self._debug_save_raw(x, y, "html")
             ),
         }
+
+    def validate_lang(self, source, target):
+        if source not in SOURCE_LANG:
+            raise Exception(f"{source} is not a valid source language.")
+        if target not in TARGET_LANG:
+            raise Exception(f"{target} is not a valid target language.")
 
     def set_source_lang(self, source):
         elem = self.driver.find_element(
@@ -99,7 +161,7 @@ class DeepL(Base):
                 if log_json["method"] != "Network.responseReceived":
                     continue
                 url = log_json["params"]["response"]["url"]
-                if self.check_url(("dict.deepl.com", ), url):
+                if self.check_url(("dict.deepl.com",), url):
                     flag = True
                     print("flag dict")
                     break

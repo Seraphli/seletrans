@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Callable, Dict, Type, Iterable, List, Tuple
+    from typing import Callable, Dict, Type, Iterable, List, Tuple, Literal
 
 import chromedriver_autoinstaller
 from selenium.webdriver.chrome.options import Options
@@ -69,10 +69,13 @@ class Base:
     def preprocess(self):
         pass
 
-    def set_source_lang(self, source_lang):
+    def validate_lang(self, source, target):
         pass
 
-    def set_target_lang(self, target_lang):
+    def set_source_lang(self, source):
+        pass
+
+    def set_target_lang(self, target):
         pass
 
     def wait_and_find_elem(self, by, value):
@@ -170,6 +173,7 @@ class Base:
         self.text = text
         self.driver.get(self.URL)
         self.preprocess()
+        self.validate_lang(source, target)
         self.set_source_lang(source)
         self.set_target_lang(target)
         self._get_net_logs()
