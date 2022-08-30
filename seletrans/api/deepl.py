@@ -1,66 +1,6 @@
 from .base import *
+from ..constants.deepl import *
 from bs4 import BeautifulSoup
-
-SOURCE_LANG = [
-    "auto",
-    "et",
-    "bg",
-    "pl",
-    "da",
-    "de",
-    "ru",
-    "fr",
-    "fi",
-    "nl",
-    "cs",
-    "lv",
-    "lt",
-    "ro",
-    "pt",
-    "ja",
-    "sv",
-    "sk",
-    "sl",
-    "tr",
-    "es",
-    "el",
-    "hu",
-    "it",
-    "id",
-    "en",
-    "zh",
-]
-
-TARGET_LANG = [
-    "et",
-    "bg",
-    "pl",
-    "da",
-    "de",
-    "ru",
-    "fr",
-    "fi",
-    "nl",
-    "cs",
-    "lv",
-    "lt",
-    "ro",
-    "pt-PT",
-    "pt-BR",
-    "ja",
-    "sv",
-    "sk",
-    "sl",
-    "tr",
-    "es",
-    "el",
-    "hu",
-    "it",
-    "id",
-    "en-US",
-    "en-GB",
-    "zh",
-]
 
 
 class DeepL(Base):
