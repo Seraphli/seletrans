@@ -15,13 +15,13 @@ class DeepL(Base):
             ),
         }
 
-    def validate_lang(self, source, target):
-        if source not in SOURCE_LANG:
-            raise Exception(f"{source} is not a valid source language.")
-        if target not in TARGET_LANG:
-            raise Exception(f"{target} is not a valid target language.")
+    def validate_lang(self):
+        if self.source not in SOURCE_LANG:
+            raise Exception(f"{self.source} is not a valid source language.")
+        if self.target not in TARGET_LANG:
+            raise Exception(f"{self.target} is not a valid target language.")
 
-    def set_source_lang(self, source):
+    def set_source_lang(self):
         elem = self.driver.find_element(
             By.XPATH, "//button[@dl-test='translator-source-lang-btn']"
         )
@@ -32,11 +32,11 @@ class DeepL(Base):
             )
         )
         elem = self.driver.find_element(
-            By.XPATH, f"//button[@dl-test='translator-lang-option-{source}']"
+            By.XPATH, f"//button[@dl-test='translator-lang-option-{self.source}']"
         )
         elem.click()
 
-    def set_target_lang(self, target):
+    def set_target_lang(self):
         elem = self.driver.find_element(
             By.XPATH, "//button[@dl-test='translator-target-lang-btn']"
         )
@@ -47,7 +47,7 @@ class DeepL(Base):
             )
         )
         elem = self.driver.find_element(
-            By.XPATH, f"//button[@dl-test='translator-lang-option-{target}']"
+            By.XPATH, f"//button[@dl-test='translator-lang-option-{self.target}']"
         )
         elem.click()
 
@@ -91,20 +91,5 @@ class DeepL(Base):
             time.sleep(check_interval)
         time.sleep(check_interval)
 
-    def wait_for_response(self, text):
-        super().wait_for_response(text)
-        while True:
-            self._get_net_logs()
-            flag = False
-            for log in self.net_logs:
-                log_json = json.loads(log["message"])["message"]
-                if log_json["method"] != "Network.responseReceived":
-                    continue
-                url = log_json["params"]["response"]["url"]
-                if self.check_url(("dict.deepl.com",), url):
-                    flag = True
-                    print("flag dict")
-                    break
-            if flag:
-                break
-            time.sleep(0.1)
+    def wait_for_response(self, text, urls=None):
+        super().wait_for_response(text, {"dict.deepl.com": None})

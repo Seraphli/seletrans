@@ -69,13 +69,13 @@ class Base:
     def preprocess(self):
         pass
 
-    def validate_lang(self, source, target):
+    def validate_lang(self):
         pass
 
-    def set_source_lang(self, source):
+    def set_source_lang(self):
         pass
 
-    def set_target_lang(self, target):
+    def set_target_lang(self):
         pass
 
     def wait_and_find_elem(self, by, value):
@@ -88,9 +88,29 @@ class Base:
     def get_textarea(self):
         return self.wait_and_find_elem(By.CSS_SELECTOR, "textarea")
 
-    def wait_for_response(self, text):
+    def wait_for_response(self, text, urls=None):
         self._wait_for_url_change(text)
         self._wait_for_network_idle()
+        if urls is None:
+            return
+        while True:
+            self._get_net_logs()
+            flags = [False] * len(urls)
+            for log in self.net_logs:
+                log_json = json.loads(log["message"])["message"]
+                if log_json["method"] != "Network.responseReceived":
+                    continue
+                url = log_json["params"]["response"]["url"]
+                for idx, _url in enumerate(urls):
+                    if self.check_url((_url,), url) and (
+                        urls[_url] is None or urls[_url](log_json)
+                    ):
+                        flags[idx] = True
+                if all(flags):
+                    break
+            if all(flags):
+                break
+            time.sleep(0.1)
 
     def try_click(self, elem):
         try:
@@ -170,17 +190,23 @@ class Base:
         return logs
 
     def query(self, text, source="auto", target="zh"):
+        self.url = self.URL
         self.text = text
-        self.driver.get(self.URL)
+        self.source = source
+        self.target = target
+        self.result = []
+        self.dict_result = []
+        self.validate_lang()
+        self.driver.get(self.url)
         self.preprocess()
-        self.validate_lang(source, target)
-        self.set_source_lang(source)
-        self.set_target_lang(target)
+        self.set_source_lang()
+        self.set_target_lang()
         self._get_net_logs()
         self._clear_net_logs()
         elem = self.get_textarea()
         elem.send_keys(self.text)
         self.wait_for_response(self.text)
+        elem.send_keys(Keys.TAB)
         self._get_net_logs()
         self.result = ""
         for log in self.net_logs:

@@ -22,25 +22,25 @@ class Baidu(Base):
             elem.click()
             self.skip_guide = True
 
-    def validate_lang(self, source, target):
-        if source not in VALID_LANG:
-            raise Exception(f"{source} is not a valid source language.")
-        if target not in VALID_LANG[source]:
-            raise Exception(f"{target} is not a valid target language.")
+    def validate_lang(self):
+        if self.source not in VALID_LANG:
+            raise Exception(f"{self.source} is not a valid source language.")
+        if self.target not in VALID_LANG[self.source]:
+            raise Exception(f"{self.target} is not a valid target language.")
 
-    def set_source_lang(self, source):
+    def set_source_lang(self):
         lang_btn = self.driver.find_element(
             By.XPATH, "//a[@class='language-btn select-from-language']"
         )
         lang_btn.click()
-        if source == "auto":
+        if self.source == "auto":
             elem = self.wait_and_find_elem(
                 By.XPATH, "//li[contains(@class,'lang-item')]"
             )
             elem.click()
         else:
             elem = self.wait_and_find_elem(By.XPATH, "//input[@class='search-input']")
-            elem.send_keys(source)
+            elem.send_keys(self.source)
             elem = self.wait_and_find_elem(
                 By.XPATH, "//div[@class='search-result-item']"
             )
@@ -49,13 +49,13 @@ class Baidu(Base):
         if not self.try_click(textarea):
             lang_btn.click()
 
-    def set_target_lang(self, target):
+    def set_target_lang(self):
         lang_btn = self.driver.find_element(
             By.XPATH, "//a[@class='language-btn select-to-language']"
         )
         lang_btn.click()
         elem = self.wait_and_find_elem(By.XPATH, "//input[@class='search-input']")
-        elem.send_keys(target)
+        elem.send_keys(self.target)
         elem = self.wait_and_find_elem(By.XPATH, "//div[@class='search-result-item']")
         elem.click()
         textarea = self.get_textarea()
