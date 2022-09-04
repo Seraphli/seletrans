@@ -6,7 +6,7 @@ Currently support `Baidu`, `DeepL` and `Google`.
 
 ## Usage
 
-```
+```python
 from seletrans.api import *
 
 with Google() as ts:
