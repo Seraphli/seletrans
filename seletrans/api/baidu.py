@@ -107,3 +107,6 @@ class Baidu(Base):
                 break
             time.sleep(check_interval)
         time.sleep(check_interval)
+
+
+register("baidu", Baidu)

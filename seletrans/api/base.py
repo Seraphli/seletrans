@@ -23,6 +23,7 @@ import urllib.parse
 from dataclasses import dataclass
 import time
 from seletrans.util import get_path
+from .seletrans import register
 
 
 @dataclass

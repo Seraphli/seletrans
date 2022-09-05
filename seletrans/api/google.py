@@ -80,3 +80,6 @@ class Google(Base):
                 break
             time.sleep(check_interval)
         time.sleep(check_interval)
+
+
+register("google", Google)

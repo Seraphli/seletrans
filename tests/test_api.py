@@ -78,3 +78,11 @@ def test_google():
         print(res.dict_result)
         res.play_sound()
         # assert res.result == "Books are our friends"
+
+
+def test_seletrans():
+    with Seletrans("baidu")() as ts:
+        res = ts.query("book", target="zh")
+        print(res.result)
+        print(res.dict_result)
+        res.play_sound()

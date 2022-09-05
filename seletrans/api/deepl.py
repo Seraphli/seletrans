@@ -93,3 +93,6 @@ class DeepL(Base):
 
     def wait_for_response(self, text, urls=None):
         super().wait_for_response(text, {"dict.deepl.com": None})
+
+
+register("deepl", DeepL)
