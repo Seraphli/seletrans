@@ -51,22 +51,6 @@ class Google(Base):
     def wait_for_response(self, text, urls=None):
         return super().wait_for_response(text, {"batchexecute": self._check_response})
 
-    def _check_response(self, log_json):
-        requestId = log_json["params"]["requestId"]
-        try:
-            response_body = self.driver.execute_cdp_cmd(
-                "Network.getResponseBody", {"requestId": requestId}
-            )
-            body = response_body["body"]
-            if self._get_simple_result(body):
-                return True
-            else:
-                return False
-        except WebDriverException:
-            return False
-        except:
-            return False
-
     def play_sound(self, check_interval=0.1):
         elem = self.driver.find_element(
             By.XPATH,

@@ -190,6 +190,23 @@ class Base:
         self.net_logs.extend(logs)
         return logs
 
+    def _check_response(self, log_json):
+        requestId = log_json["params"]["requestId"]
+        try:
+            # https://chromedevtools.github.io/devtools-protocol/
+            response_body = self.driver.execute_cdp_cmd(
+                "Network.getResponseBody", {"requestId": requestId}
+            )
+            body = response_body["body"]
+            if self._get_simple_result(body):
+                return True
+            else:
+                return False
+        except WebDriverException:
+            return False
+        except:
+            return False
+
     def query(self, text, source="auto", target="zh"):
         self.url = self.URL
         self.text = text

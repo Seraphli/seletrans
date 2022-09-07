@@ -91,8 +91,33 @@ class DeepL(Base):
             time.sleep(check_interval)
         time.sleep(check_interval)
 
+    def _check_response(self, log_json):
+        requestId = log_json["params"]["requestId"]
+        try:
+            # https://chromedevtools.github.io/devtools-protocol/
+            post_data = self.driver.execute_cdp_cmd(
+                "Network.getRequestPostData", {"requestId": requestId}
+            )["postData"]
+            post_data = json.loads(post_data)
+            if post_data['params']['jobs'][0]['sentences'][0]['text'] != self.text:
+                return False
+            response_body = self.driver.execute_cdp_cmd(
+                "Network.getResponseBody", {"requestId": requestId}
+            )
+            body = response_body["body"]
+            if self._get_simple_result(body):
+                return True
+            else:
+                return False
+        except WebDriverException:
+            return False
+        except:
+            return False
+
     def wait_for_response(self, text, urls=None):
-        super().wait_for_response(text, {"dict.deepl.com": None})
+        super().wait_for_response(
+            text, {"dict.deepl.com": None, "jsonrpc": self._check_response}
+        )
 
 
 register("deepl", DeepL)
