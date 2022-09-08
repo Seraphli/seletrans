@@ -42,6 +42,9 @@ class Base:
         self.debug = debug
         chromedriver_autoinstaller.install()
         options = Options()
+        options.add_experimental_option(
+            "prefs", {"profile.managed_default_content_settings.images": 2}
+        )
         options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--ignore-certificate-errors")
