@@ -212,7 +212,7 @@ class Base:
 
     def query(self, text, source="auto", target="zh"):
         self.url = self.URL
-        self.text = text
+        self.text = text.strip()
         self.source = source
         self.target = target
         self.result = []
