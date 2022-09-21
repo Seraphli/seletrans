@@ -106,7 +106,7 @@ class Bing(Base):
     def _get_simple_result(self, body):
         resp = json.loads(body)
         translations = resp[0]["translations"]
-        self.result = translations[0]["text"]
+        self.result = [translations[0]["text"]]
         return True
 
     def _get_dict_result(self, body):

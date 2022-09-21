@@ -235,12 +235,13 @@ class Base:
         self.wait_for_response(self.text)
         elem.send_keys(Keys.TAB)
         self._get_net_logs()
-        self.result = ""
         for log in self.net_logs:
             log_json = json.loads(log["message"])["message"]
             if log_json["method"] != "Network.responseReceived":
                 continue
             self._handle_patterns(log_json)
+        assert isinstance(self.result, list)
+        assert isinstance(self.dict_result, list)
         return self
 
     def play_sound(self, check_interval=0.1):
