@@ -4,6 +4,7 @@ from ..constants.baidu import *
 
 class Baidu(Base):
     URL = "https://fanyi.baidu.com"
+    SUPPORT_TTS = True
 
     def __init__(self, debug=False):
         super().__init__(debug)
@@ -90,7 +91,7 @@ class Baidu(Base):
         self.dict_result = dict_result
         return True
 
-    def play_sound(self, check_interval=0.1):
+    def _play_sound(self, check_interval=0.1):
         elem = self.wait_and_find_elem(By.XPATH, "//div[@class='input-operate']")
         elem = elem.find_element(
             By.XPATH, "//a[@class='operate-btn op-sound data-hover-tip']"

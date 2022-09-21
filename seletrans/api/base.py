@@ -36,6 +36,9 @@ class Base:
     NAME = "base"
     URL = ""
     TIMEOUT_MAX = 60
+    DEFAULT_SOURCE = "auto"
+    DEFAULT_TARGET = "zh"
+    SUPPORT_TTS = False
     url_map: Dict[Iterable[str], Type(Handlers)]
 
     def __init__(self, debug=False) -> None:
@@ -90,13 +93,14 @@ class Base:
         return elem
 
     def get_textarea(self):
-        return self.wait_and_find_elem(By.CSS_SELECTOR, "textarea")
+        return self.wait_and_find_elem(By.XPATH, "//textarea")
 
     def wait_for_response(self, text, urls=None):
         self._wait_for_url_change(text)
         self._wait_for_network_idle()
         if urls is None:
             return
+        st_time = time.time()
         while True:
             self._get_net_logs()
             flags = [False] * len(urls)
@@ -115,6 +119,8 @@ class Base:
             if all(flags):
                 break
             time.sleep(0.1)
+            if time.time() - st_time > self.TIMEOUT_MAX:
+                raise Exception("Timeout for waiting response")
 
     def try_click(self, elem):
         try:
@@ -210,11 +216,11 @@ class Base:
         except:
             return False
 
-    def query(self, text, source="auto", target="zh"):
+    def query(self, text, source=None, target=None):
         self.url = self.URL
         self.text = text.strip()
-        self.source = source
-        self.target = target
+        self.source = source if source is not None else self.DEFAULT_SOURCE
+        self.target = target if target is not None else self.DEFAULT_TARGET
         self.result = []
         self.dict_result = []
         self.validate_lang()
@@ -238,4 +244,9 @@ class Base:
         return self
 
     def play_sound(self, check_interval=0.1):
+        if not self.SUPPORT_TTS:
+            return
+        self._play_sound(check_interval)
+
+    def _play_sound(self, check_interval=0.1):
         pass

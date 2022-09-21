@@ -4,6 +4,8 @@ from ..constants.google import *
 
 class Google(Base):
     URL = "https://translate.google.com/"
+    DEFAULT_TARGET = "zh-CN"
+    SUPPORT_TTS = True
 
     def __init__(self, debug=False):
         super().__init__(debug)
@@ -51,7 +53,7 @@ class Google(Base):
     def wait_for_response(self, text, urls=None):
         return super().wait_for_response(text, {"batchexecute": self._check_response})
 
-    def play_sound(self, check_interval=0.1):
+    def _play_sound(self, check_interval=0.1):
         elem = self.driver.find_element(
             By.XPATH,
             f"//div/span/button[@data-idom-class='fzRBVc tmJved mN1ivc SSgGrd']",
