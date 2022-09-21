@@ -2,7 +2,7 @@
 
 Translate phase using selenium. And you can also play the sound of the phase you are querying.
 
-Currently support `Baidu`, `DeepL` and `Google`.
+Currently support `Baidu`, `DeepL`, `Bing` and `Google`.
 
 ## Usage
 
