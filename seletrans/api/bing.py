@@ -24,10 +24,12 @@ class Bing(Base):
         self.has_dict_result = True
 
     def set_source_lang(self):
+        time.sleep(0.2)
         select = Select(self.driver.find_element(By.ID, "tta_srcsl"))
         select.select_by_value(self.source)
 
     def set_target_lang(self):
+        time.sleep(0.2)
         select = Select(self.driver.find_element(By.ID, "tta_tgtsl"))
         select.select_by_value(self.target)
         time.sleep(0.1)
@@ -63,10 +65,8 @@ class Bing(Base):
                 "Network.getResponseBody", {"requestId": requestId}
             )
             body = response_body["body"]
-            if self._get_dict_result(body):
-                return True
-            else:
-                return False
+            self._get_dict_result(body)
+            return True
         except WebDriverException:
             return False
         except:
@@ -111,21 +111,26 @@ class Bing(Base):
 
     def _get_dict_result(self, body):
         resp = json.loads(body)
-        dict_trans = {}
-        translations = resp[0]["translations"]
-        for trans in translations:
-            tag = trans["posTag"]
-            if tag not in dict_trans:
-                dict_trans[tag] = []
-            dict_trans[tag].append(trans["normalizedTarget"])
-        dict_result = []
-        for k, v in dict_trans.items():
-            dict_result.append({"type": k, "means": v})
-        self.dict_result = dict_result
-        return True
+        try:
+            dict_trans = {}
+            translations = resp[0]["translations"]
+            for trans in translations:
+                tag = trans["posTag"]
+                if tag not in dict_trans:
+                    dict_trans[tag] = []
+                dict_trans[tag].append(trans["normalizedTarget"])
+            dict_result = []
+            for k, v in dict_trans.items():
+                dict_result.append({"type": k, "means": v})
+            self.dict_result = dict_result
+            return True
+        except:
+            return False
 
     def _play_sound(self, check_interval=0.1):
-        elem = self.wait_and_find_elem(By.XPATH, "//div[@id='tta_playiconsrc']")
+        elem = self.wait_and_find_elem(
+            By.XPATH, "//div[@id='tta_playiconsrc']", timeout=5
+        )
         elem = elem.find_element(By.XPATH, "//div[@id='tta_playiconsrc']")
         parent = elem.find_element(By.XPATH, "..")
         tag = "tta_playfocus"

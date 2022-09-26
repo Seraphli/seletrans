@@ -91,7 +91,9 @@ class Baidu(Base):
         return True
 
     def _play_sound(self, check_interval=0.1):
-        elem = self.wait_and_find_elem(By.XPATH, "//div[@class='input-operate']")
+        elem = self.wait_and_find_elem(
+            By.XPATH, "//div[@class='input-operate']", timeout=5
+        )
         elem = elem.find_element(
             By.XPATH, "//a[@class='operate-btn op-sound data-hover-tip']"
         )

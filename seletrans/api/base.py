@@ -25,12 +25,58 @@ from dataclasses import dataclass
 import time
 from seletrans.util import get_path
 from .seletrans import register
+import os
+import tempfile
+from functools import reduce
 
 
 @dataclass
 class Handlers:
     process: List[Callable[[str], bool]] | None = None
     debug: Callable[[str, str]] | None = None
+
+
+class ChromeWithPrefs(uc.Chrome):
+    def __init__(self, *args, options=None, **kwargs):
+        if options:
+            self._handle_prefs(options)
+
+        super().__init__(*args, options=options, **kwargs)
+
+        # remove the user_data_dir when quitting
+        self.keep_user_data_dir = False
+
+    @staticmethod
+    def _handle_prefs(options):
+        if prefs := options.experimental_options.get("prefs"):
+            # turn a (dotted key, value) into a proper nested dict
+            def undot_key(key, value):
+                if "." in key:
+                    key, rest = key.split(".", 1)
+                    value = undot_key(rest, value)
+                return {key: value}
+
+            # undot prefs dict keys
+            undot_prefs = reduce(
+                lambda d1, d2: {**d1, **d2},  # merge dicts
+                (undot_key(key, value) for key, value in prefs.items()),
+            )
+
+            # create an user_data_dir and add its path to the options
+            user_data_dir = os.path.normpath(tempfile.mkdtemp())
+            options.add_argument(f"--user-data-dir={user_data_dir}")
+
+            # create the preferences json file in its default directory
+            default_dir = os.path.join(user_data_dir, "Default")
+            os.mkdir(default_dir)
+
+            prefs_file = os.path.join(default_dir, "Preferences")
+            with open(prefs_file, encoding="latin1", mode="w") as f:
+                json.dump(undot_prefs, f)
+
+            # pylint: disable=protected-access
+            # remove the experimental_options to avoid an error
+            del options._experimental_options["prefs"]
 
 
 class Base:
@@ -46,9 +92,9 @@ class Base:
         self.debug = debug
         # chromedriver_autoinstaller.install()
         options = Options()
-        # options.add_experimental_option(
-        #     "prefs", {"profile.managed_default_content_settings.images": 2}
-        # )
+        options.add_experimental_option(
+            "prefs", {"profile.managed_default_content_settings.images": 2}
+        )
         options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--ignore-certificate-errors")
@@ -59,7 +105,7 @@ class Base:
         if not debug:
             options.headless = True
         # self.driver = webdriver.Chrome(options=options)
-        self.driver = uc.Chrome(options=options)
+        self.driver = ChromeWithPrefs(options=options)
         self.url_map = {}
         self.net_logs = []
 
@@ -90,8 +136,9 @@ class Base:
     def set_target_lang(self):
         pass
 
-    def wait_and_find_elem(self, by, value):
-        WebDriverWait(self.driver, self.TIMEOUT_MAX).until(
+    def wait_and_find_elem(self, by, value: str, timeout: float = None):
+        timeout = self.TIMEOUT_MAX if timeout is None else timeout
+        WebDriverWait(self.driver, timeout).until(
             EC.visibility_of_element_located((by, value))
         )
         elem = self.driver.find_element(by, value)
