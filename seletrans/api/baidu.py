@@ -71,7 +71,6 @@ class Baidu(Base):
     def _get_dict_result(self, body):
         resp = json.loads(body)
         if "dict_result" not in resp:
-            self.dict_result = ""
             return False
         dict_result = []
         parts = resp["dict_result"]["simple_means"]["symbols"][0]["parts"]

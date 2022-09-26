@@ -4,9 +4,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Callable, Dict, Type, Iterable, List, Tuple, Literal
 
-import chromedriver_autoinstaller
+# import chromedriver_autoinstaller
+# from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium import webdriver
+import undetected_chromedriver.v2 as uc
 from selenium.webdriver.common.by import By
 import codecs
 import json
@@ -43,18 +44,22 @@ class Base:
 
     def __init__(self, debug=False) -> None:
         self.debug = debug
-        chromedriver_autoinstaller.install()
+        # chromedriver_autoinstaller.install()
         options = Options()
-        options.add_experimental_option(
-            "prefs", {"profile.managed_default_content_settings.images": 2}
-        )
+        # options.add_experimental_option(
+        #     "prefs", {"profile.managed_default_content_settings.images": 2}
+        # )
         options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--ignore-certificate-errors")
         options.add_argument("--allow-running-insecure-content")
+        options.add_argument(
+            "--no-first-run --no-service-autorun --password-store=basic"
+        )
         if not debug:
             options.headless = True
-        self.driver = webdriver.Chrome(options=options)
+        # self.driver = webdriver.Chrome(options=options)
+        self.driver = uc.Chrome(options=options)
         self.url_map = {}
         self.net_logs = []
 

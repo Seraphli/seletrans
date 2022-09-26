@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 class DeepL(Base):
     URL = "https://www.deepl.com/translator"
-    SUPPORT_TTS = False
+    SUPPORT_TTS = True
 
     def __init__(self, debug=False):
         super().__init__(debug)
@@ -66,7 +66,6 @@ class DeepL(Base):
         soup = BeautifulSoup(body, features="html.parser")
         wmeans = soup.select("a[class*='dictLink']")
         if len(wmeans) == 0:
-            self.dict_result = ""
             return False
         wtypes = soup.select("span[class*='type']")
         words = zip([i.text for i in wmeans], [i.text for i in wtypes])
