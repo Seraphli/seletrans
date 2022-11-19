@@ -76,17 +76,20 @@ class Baidu(Base):
         parts = resp["dict_result"]["simple_means"]["symbols"][0]["parts"]
         for part in parts:
             if "part" in part:
+                # en -> zh
                 wmeans = part["means"]
                 wtype = part["part"]
                 dict_result.append({"type": wtype, "means": wmeans})
             else:
+                # zh -> en
                 means = part["means"]
                 for mean in means:
                     if "means" not in mean:
                         continue
                     wmeans = mean["means"]
                     wtype = mean["part"]
-                    dict_result.append({"type": wtype, "means": wmeans})
+                    text = mean["text"]
+                    dict_result.append({"type": wtype, "means": wmeans, "text": text})
         self.dict_result = dict_result
         return True
 

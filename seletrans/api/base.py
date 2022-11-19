@@ -282,6 +282,7 @@ class Base:
         self.set_target_lang()
         self._get_net_logs()
         self._clear_net_logs()
+        time.sleep(0.1)
         elem = self.get_textarea()
         elem.send_keys(self.text)
         self.wait_for_response(self.text)
@@ -296,10 +297,14 @@ class Base:
         assert isinstance(self.dict_result, list)
         return self
 
-    def play_sound(self, check_interval=0.1):
+    def play_sound(self, check_interval=0.1, ignore_exception=True):
         if not self.SUPPORT_TTS:
             return
-        self._play_sound(check_interval)
+        try:
+            self._play_sound(check_interval)
+        except Exception as e:
+            if not ignore_exception:
+                raise e
 
     def _play_sound(self, check_interval=0.1):
         pass
