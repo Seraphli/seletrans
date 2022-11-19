@@ -270,7 +270,6 @@ class Base:
 
     def query(self, text, source=None, target=None):
         self.url = self.URL
-        self.text = text.strip()
         self.source = source if source is not None else self.DEFAULT_SOURCE
         self.target = target if target is not None else self.DEFAULT_TARGET
         self.result = []
@@ -283,6 +282,38 @@ class Base:
         self._get_net_logs()
         self._clear_net_logs()
         time.sleep(0.1)
+        self.text = text.strip()
+        elem = self.get_textarea()
+        elem.send_keys(self.text)
+        self.wait_for_response(self.text)
+        elem.send_keys(Keys.TAB)
+        self._get_net_logs()
+        for log in self.net_logs:
+            log_json = json.loads(log["message"])["message"]
+            if log_json["method"] != "Network.responseReceived":
+                continue
+            self._handle_patterns(log_json)
+        assert isinstance(self.result, list)
+        assert isinstance(self.dict_result, list)
+        return self
+
+    def prepare(self):
+        self.url = self.URL
+        self.driver.get(self.url)
+        self.preprocess()
+
+    def instant_query(self, text, source=None, target=None):
+        self.source = source if source is not None else self.DEFAULT_SOURCE
+        self.target = target if target is not None else self.DEFAULT_TARGET
+        self.result = []
+        self.dict_result = []
+        self.validate_lang()
+        self.set_source_lang()
+        self.set_target_lang()
+        self._get_net_logs()
+        self._clear_net_logs()
+        time.sleep(0.1)
+        self.text = text.strip()
         elem = self.get_textarea()
         elem.send_keys(self.text)
         self.wait_for_response(self.text)
