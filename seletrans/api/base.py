@@ -284,7 +284,10 @@ class Base:
         time.sleep(0.1)
         self.text = text.strip()
         elem = self.get_textarea()
-        elem.send_keys(self.text)
+        try:
+            elem.send_keys(Keys.TAB)
+        except:
+            pass
         self.wait_for_response(self.text)
         elem.send_keys(Keys.TAB)
         self._get_net_logs()
@@ -317,7 +320,10 @@ class Base:
         elem = self.get_textarea()
         elem.send_keys(self.text)
         self.wait_for_response(self.text)
-        elem.send_keys(Keys.TAB)
+        try:
+            elem.send_keys(Keys.TAB)
+        except:
+            pass
         self._get_net_logs()
         for log in self.net_logs:
             log_json = json.loads(log["message"])["message"]
