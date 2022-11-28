@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "seletrans"
-version = "0.4.6"
+version = "0.4.7"
 authors = ["SErAphLi <seraphlivery@gmail.com>"]
 description = "Translate phase using selenium."
 readme = "README.md"
